@@ -23,7 +23,7 @@ from sklearn.model_selection import train_test_split
 def price_mage(ticker):
 
     test =  yf.download(tickers= ticker,interval ='5m',period = '1mo')
-    today = test.loc[test.index >= (datetime.datetime.now()-datetime.timedelta(days=1)).strftime('%Y-%m-%d 09:30')]
+    today = test.loc[test.index >= (datetime.datetime.now().strftime('%Y-%m-%d 09:30'))]
     #Creating OBV
     #zip learned: https://stackoverflow.com/questions/1663807/how-to-iterate-through-two-lists-in-parallel
     obv = []
@@ -103,7 +103,6 @@ def price_mage(ticker):
     forcast['predictions'] = lin_model.predict(forcast)
     forcast['Lin Model Accuracy'] = lin_model.score(X_test,y_test)
 
-
     #Resetting times to forcast
     changer = forcast.index.to_pydatetime()
     changer = [x+datetime.timedelta(minutes=30) for x in changer]
@@ -124,7 +123,7 @@ def price_mage(ticker):
     X_train, X_test, y_train, y_test = train_test_split(SVC_X_scaled,SVC_y, train_size=.7, random_state = 6)
     SVC_model = SVC_model.fit(X_train,y_train)
     forcast['SVC_UpValue_Predictions'] = SVC_model.predict(forcast.drop(columns=['predictions','Lin Model Accuracy']))
-    forcast['SVC Accuracy'] = SVC_model.score(X_test,y_test)
+    forcast['SVC Score'] = SVC_model.score(X_test,y_test)
     #https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.map.html
     forcast['SVC_Recommendation'] = forcast['SVC_UpValue_Predictions'].map({1:'Buy',0:'Sell'})
     forcast.drop(columns=['Volume', 'OBV', 'Rolling_hour_average', 'Above_average', 'adx',
@@ -138,6 +137,7 @@ def price_mage(ticker):
 
 
 
+    today = test.loc[test.index >= (datetime.datetime.now().strftime('%Y-%m-%d 09:30'))]
 
 
     max_tick = int(today['Close'].mean() +20)
@@ -146,7 +146,7 @@ def price_mage(ticker):
     plt.figure(figsize=(10,10))
     plt.plot_date(today.index.to_pydatetime(), today['Close'],color= 'b')
     plt.plot_date(forcast.index.to_pydatetime(), forcast['predictions'],color= 'g')
-    plt.plot(today.index.to_pydatetime(), today['Close'],color= 'b')
+    #plt.plot(today.index.to_pydatetime(), today['Close'],color= 'b')
     plt.plot(forcast.index.to_pydatetime(), forcast['predictions'],color= 'g')
     plt.ylabel('Stock Price',fontsize= 15)
     plt.yticks(y_ticks)
@@ -168,11 +168,11 @@ def price_mage(ticker):
 
 print('Please enter in a stock ticker in all caps:')
 stock = str(input())
-while int(time.asctime().split()[3].replace(':','')) < 173000:
+while int(time.asctime().split()[3].replace(':','')) < 163000:
     price_mage(stock)
     import os
     os.popen("Data\Trade_Recommendations.csv")
-    time.sleep(30)
+    time.sleep(120)
 
 
 # In[ ]:
